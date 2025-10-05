@@ -1,50 +1,50 @@
 # Core dependencies
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-python-multipart==0.0.6
+fastapi
+uvicorn[standard]
+pydantic
+python-multipart
 
 # Machine Learning & AI
-torch==2.1.0
-tensorflow==2.14.0
+torch
+tensorflow
 scikit-learn
 numpy
 pandas
 
 # Time Series Models
-prophet==1.1.5
-statsmodels==0.14.0
-EMD-signal==1.5.0
+prophet
+statsmodels
+EMD-signal
 
 # Database
-motor==3.3.2
-pymongo==4.6.0
-redis==5.0.1
+motor
+pymongo
+redis
 
 # Async & WebSocket
-websockets==12.0
-aiohttp==3.9.0
-asyncio==3.4.3
+websockets
+aiohttp
+asyncio
 
 # Email & Notifications
-email-validator==2.1.0
-python-dotenv==1.0.0
+email-validator
+python-dotenv
 
 # Data Processing
-matplotlib==3.8.1
-seaborn==0.13.0
-plotly==5.18.0
+matplotlib
+seaborn
+plotly
 
 # API Documentation
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+python-jose[cryptography]
+passlib[bcrypt]
 
 # Monitoring & Logging
-loguru==0.7.2
+loguru
 
 # Optional - for advanced models
 # transformers==4.35.0  # For TimeGPT-like models
 # darts==0.27.0  # For advanced time series
 # neuralforecast==1.6.4  # For N-BEATS, etc.
 
-colorama==0.4.6
+colorama
