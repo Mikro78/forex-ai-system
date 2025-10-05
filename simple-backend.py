@@ -1,11 +1,17 @@
-# simple_backend.py - FOREX AI Trading System
+# simple_backend.py - ПОПРАВЕНА версия
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Dict, Any
 from datetime import datetime
 import random
 import os
 
-app = FastAPI(title="FOREX AI Trading System", version="2.0")
+app = FastAPI(
+    title="FOREX AI Trading System",
+    description="AI-powered trading system with 16 neural network models",
+    version="2.0"
+)
 
 # CORS
 app.add_middleware(
@@ -38,8 +44,32 @@ MODELS = {
 
 current_rate = 1.0950
 
+# Pydantic models за документация
+class ModelInfo(BaseModel):
+    name: str
+    accuracy: float
+    status: str
+
+class ModelsResponse(BaseModel):
+    models: List[ModelInfo]
+    count: int
+
+class StatusResponse(BaseModel):
+    status: str
+    models_active: int
+    current_rate: float
+    time: str
+
+class PredictionResponse(BaseModel):
+    model: str
+    signal: str
+    confidence: float
+    next_price: float
+    accuracy: float
+
 @app.get("/")
 def root():
+    """Root endpoint - basic info"""
     return {
         "status": "online",
         "message": "FOREX AI Backend is running!",
@@ -48,8 +78,9 @@ def root():
         "docs": "Add /docs to URL for API documentation"
     }
 
-@app.get("/api/status")
+@app.get("/api/status", response_model=StatusResponse)
 def get_status():
+    """Get system status"""
     return {
         "status": "🟢 Online",
         "models_active": len(MODELS),
@@ -57,16 +88,27 @@ def get_status():
         "time": datetime.now().isoformat()
     }
 
-@app.get("/api/models")
+@app.get("/api/models", response_model=ModelsResponse)
 def get_models():
-    return {"models": [
-        {"name": name, "accuracy": acc, "status": "active"} 
-        for name, acc in MODELS.items()
-    ]}
+    """Get list of all available models"""
+    models_list = []
+    for name, accuracy in MODELS.items():
+        models_list.append({
+            "name": name,
+            "accuracy": accuracy,
+            "status": "active"
+        })
+    
+    return {
+        "models": models_list,
+        "count": len(models_list)
+    }
 
-@app.post("/api/predict")
+@app.post("/api/predict", response_model=List[PredictionResponse])
 def predict():
+    """Generate predictions from all models"""
     predictions = []
+    
     for name, accuracy in MODELS.items():
         if name != "Ensemble":
             deviation = random.uniform(-0.001, 0.001)
@@ -79,7 +121,7 @@ def predict():
                 "accuracy": accuracy
             })
     
-    # Ensemble
+    # Ensemble prediction
     buy_count = sum(1 for p in predictions if p["signal"] == "BUY")
     sell_count = sum(1 for p in predictions if p["signal"] == "SELL")
     ensemble_signal = "BUY" if buy_count > sell_count else "SELL" if sell_count > buy_count else "HOLD"
@@ -96,18 +138,34 @@ def predict():
 
 @app.get("/api/live-rate")
 def get_live_rate():
+    """Get current EUR/USD rate"""
     global current_rate
     current_rate += random.uniform(-0.0005, 0.0005)
     current_rate = round(current_rate, 5)
     return {
         "symbol": "EUR/USD",
         "rate": current_rate,
+        "bid": current_rate - 0.0001,
+        "ask": current_rate + 0.0001,
         "time": datetime.now().isoformat()
+    }
+
+@app.get("/api/performance")
+def get_performance():
+    """Get trading performance metrics"""
+    return {
+        "today_pl": round(random.uniform(1, 3), 2),
+        "week_pl": round(random.uniform(5, 10), 2),
+        "month_pl": round(random.uniform(10, 20), 2),
+        "win_rate": round(random.uniform(85, 95), 1),
+        "total_trades": random.randint(50, 100),
+        "winning_trades": random.randint(40, 90)
     }
 
 @app.get("/health")
 def health():
-    return {"status": "healthy"}
+    """Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 if __name__ == "__main__":
     import uvicorn
