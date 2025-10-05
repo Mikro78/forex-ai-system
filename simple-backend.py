@@ -3,6 +3,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import random
 import os
+from motor.motor_asyncio import AsyncIOMotorClient
+
+# MongoDB connection
+MONGODB_URL = os.getenv("MONGODB_URL")
+db_client = None
+db = None
+
+@app.on_event("startup")
+async def startup_db_client():
+    global db_client, db
+    if MONGODB_URL:
+        db_client = AsyncIOMotorClient(MONGODB_URL)
+        db = db_client.forex_ai
+        print("Connected to MongoDB")
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    if db_client:
+        db_client.close()
 
 app = FastAPI(title="FOREX AI Trading System")
 
