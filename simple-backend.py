@@ -59,7 +59,16 @@ def get_models():
 
 @app.get("/api/status")
 def status():
-    return {"status": "online", "models_active": len(MODELS), "mongodb": "connected" if db else "not connected"}
+    try:
+        mongodb_status = "connected" if db_client else "not connected"
+    except:
+        mongodb_status = "unknown"
+    
+    return {
+        "status": "online", 
+        "models_active": len(MODELS), 
+        "mongodb": mongodb_status
+    }
 
 @app.get("/api/predict")
 def predict():
