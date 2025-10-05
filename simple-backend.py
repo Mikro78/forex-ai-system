@@ -3,26 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import random
 import os
-from motor.motor_asyncio import AsyncIOMotorClient
 
-# MongoDB connection
-MONGODB_URL = os.getenv("MONGODB_URL")
-db_client = None
-db = None
-
-@app.on_event("startup")
-async def startup_db_client():
-    global db_client, db
-    if MONGODB_URL:
-        db_client = AsyncIOMotorClient(MONGODB_URL)
-        db = db_client.forex_ai
-        print("Connected to MongoDB")
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    if db_client:
-        db_client.close()
-
+# Първо създаваме app
 app = FastAPI(title="FOREX AI Trading System")
 
 app.add_middleware(
@@ -33,6 +15,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# MongoDB connection - СЛЕД създаването на app
+from motor.motor_asyncio import AsyncIOMotorClient
+
+MONGODB_URL = os.getenv("MONGODB_URL")
+db_client = None
+db = None
+
+@app.on_event("startup")
+async def startup_db_client():
+    global db_client, db
+    if MONGODB_URL:
+        try:
+            db_client = AsyncIOMotorClient(MONGODB_URL)
+            db = db_client.forex_ai
+            print("Connected to MongoDB")
+        except Exception as e:
+            print(f"MongoDB connection failed: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    if db_client:
+        db_client.close()
+
+# Моделите
 MODELS = {
     "NARX": 91.2, "EMD-NARX": 94.2, "TimeGPT": 93.1,
     "Transformer": 89.5, "Autoformer": 88.7, "Informer": 87.9,
@@ -42,6 +48,7 @@ MODELS = {
     "Ensemble": 95.7
 }
 
+# Endpoints
 @app.get("/")
 def root():
     return {"status": "online", "message": "FOREX AI Backend", "models": len(MODELS)}
@@ -52,7 +59,7 @@ def get_models():
 
 @app.get("/api/status")
 def status():
-    return {"status": "online", "models_active": len(MODELS)}
+    return {"status": "online", "models_active": len(MODELS), "mongodb": "connected" if db else "not connected"}
 
 @app.get("/api/predict")
 def predict():
